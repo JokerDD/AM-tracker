@@ -135,10 +135,10 @@ def plan():
     c2=conn.cursor()
     c3=conn.cursor()
     
-    c1.execute(" select activity_no from activity where activity_name=? "(m,))
+    c1.execute("select activity_no from activity where activity_name=?",(m,))
     act=c1.fetchall()
     
-    c2.execute(" select release_no from monthly_release where release_name=? "(n,))
+    c2.execute("select release_no from monthly_release where release_name=?",(n,))
     rel=c2.fetchall()
     
     try:
@@ -148,15 +148,51 @@ def plan():
 
         
     conn.commit()
-    conn.close()    
+    conn.close()   
     
     
     
+def obj():
+        
+    i=j1.get()
+    j=j2.get()  
+    k=j3.get()
+    l=j4.get()
+    m=j5.get()
+    n=j6.get()
+    
+    pp=list_hotfix.get()
+    qq=list_rel_2.get()
+    rr=list_user_3.get()
+    
+    conn=sqlite3.connect("RELEASE_DB_1.db")
+    c1=conn.cursor()
+    c2=conn.cursor()
+    c3=conn.cursor()
+    c4=conn.cursor()
+    
+    c1.execute("select hf_no from hotfix where hf_name=?",(pp,))
+    hf_num=c1.fetchall()
+    
+    c2.execute(" select release_no from monthly_release where release_name=?",(qq,))
+    rel_num=c2.fetchall()
+    
+    c3.execute(" select user_no from user where user_name=?",(rr,))
+    user_num=c3.fetchall()
     
     
+    print(hf_num)
+    print(rel_num)
+    print(user_num)
     
-    
-    
+    try:
+        c4.execute('''insert into object (object_name,object_type, hf_id, release_id , user_id, pbi_no, pbi_desc, reg_status, comments) values(?,?,?,?,?,?,?,?,?)''', (i,j,hf_num[0][0],rel_num[0][0],user_num[0][0],k,l,m,n))
+    except sqlite3.IntegrityError as e:
+        print('sqlite error: ', e.args[0]) # column name is not unique
+            
+    conn.commit()
+    conn.close()
+
 
 #code for GUI
 main = Tk()
@@ -170,6 +206,7 @@ c2=conn.cursor()
 c3=conn.cursor()
 c4=conn.cursor()
 c5=conn.cursor()
+c6=conn.cursor()
 
 c2.execute("select USER_NAME from USER")         #user table
 user = c2.fetchall()
@@ -182,6 +219,9 @@ rel= c4.fetchall()
 
 c5.execute("select activity_name from activity")      #activity
 act= c5.fetchall()
+
+c6.execute("select hf_name from hotfix")     #hotfix 
+hot= c6.fetchall()
 
 
 
@@ -236,7 +276,7 @@ list_status.grid(row=4,column=1)
 e1=Entry(tab_1)
 e1.grid(row=0, column=1)
 
-Button(tab_1, text='Finish', command=testing).grid(row=5, column=0, sticky=W, pady=4)
+Button(tab_1, text='Submit', command=testing).grid(row=5, column=0, sticky=W, pady=4)
 
 
 # # tab_Hotfix # #
@@ -261,7 +301,7 @@ list_user_1=ttk.Combobox(tab_2, width=17 , height = 20)  #user dropdown
 list_user_1['values']=user
 list_user_1.grid(row=2,column=1)
 
-Button(tab_2, text='Finish', command=Hotfix).grid(row=3, column=0, sticky=W, pady=4)
+Button(tab_2, text='Submit', command=Hotfix).grid(row=3, column=0, sticky=W, pady=4)
 
 
 # # user tab # #
@@ -273,7 +313,7 @@ g1=Entry(tab_3)
 g1.grid(row=0, column=1)
 
 
-Button(tab_3, text='Finish', command=User_1).grid(row=1, column=0, sticky=W, pady=4)
+Button(tab_3, text='Submit', command=User_1).grid(row=1, column=0, sticky=W, pady=4)
 
 
 
@@ -306,7 +346,7 @@ list_rel_1['values']=rel_1
 list_rel_1.grid(row=2,column=1)
 #####
 
-Button(tab_4, text="Finish" , command=enrich).grid(row=4, column =0, sticky =W, pady=4)
+Button(tab_4, text="Submit" , command=enrich).grid(row=4, column =0, sticky =W, pady=4)
 
 
 # # Plan # #
@@ -343,19 +383,66 @@ i4=Entry(tab_5)
 i4.grid(row=4,column=1)
 
  
-
 list_release=ttk.Combobox(tab_5, width=17 , height = 20)  #release dropdown
 list_release['values']=rel_1
 list_release.grid(row=5,column=1)
 
-Button(tab_5 , text="Finish", command=plan).grid(row=6, column=0, sticky=W, pady=4)
-
+Button(tab_5 , text="Submit", command=plan).grid(row=6, column=0, sticky=W, pady=4)
 
 # # object # #
 
+Label(tab_6, text="Object_name").grid(row=0)
+Label(tab_6, text="Object_type").grid(row=1)
+Label(tab_6, text="Hf_id").grid(row=2)
+Label(tab_6, text="Release_id").grid(row=3)
+Label(tab_6, text="User_id").grid(row=4)
+Label(tab_6, text="pbi_no").grid(row=5)
+Label(tab_6, text="pbi_desc").grid(row=6)
+Label(tab_6, text="reg_status").grid(row=7)
+Label(tab_6, text="comments").grid(row=8)
+
+j1=Entry(tab_6)
+j1.grid(row=0,column=1)
+
+j2=Entry(tab_6)
+j2.grid(row=1,column=1)
 
 
 
+list_hotfix=ttk.Combobox(tab_6, width=17 , height = 20)
 
+hotfix=[]
+for i in hot:
+    hotfix.append(i[0])                   #to remove the curly braces from dropdown
+    
+    
+list_hotfix['values']=hotfix
+list_hotfix.grid(row=2,column=1)
+
+
+list_rel_2=ttk.Combobox(tab_6, width=17 , height = 20)  #release
+list_rel_2['values']=rel_1
+list_rel_2.grid(row=3,column=1)
+
+
+list_user_3=ttk.Combobox(tab_6, width=17 , height = 20)  #user dropdown
+list_user_3['values']=user
+list_user_3.grid(row=4,column=1)
+
+
+j3=Entry(tab_6)
+j3.grid(row=5,column=1)
+
+j4=Entry(tab_6)
+j4.grid(row=6,column=1)
+
+j5=Entry(tab_6)
+j5.grid(row=7,column=1)
+
+j6=Entry(tab_6)
+j6.grid(row=8,column=1)
+
+
+Button(tab_6 , text="Submit", command=obj).grid(row=9, column=0, sticky=W, pady=4)
 
 mainloop()
